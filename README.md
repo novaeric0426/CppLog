@@ -235,75 +235,13 @@ int main() {
 [2024-06-02 10:30:45.124] [ERROR] [12345] 연결 실패: 타임아웃
 ```
 
-## ⚡ 성능
-
-- **비동기**: 백그라운드 워커 스레드를 사용한 논블로킹 로깅
-- **배치 처리**: 한 번에 최대 100개의 로그 항목 처리
-- **이동 시맨틱**: 불필요한 문자열 복사 최소화
-- **지연 초기화**: 필요할 때만 워커 스레드 시작
-
-## 🔒 예외 안전성
-
-로거는 예외 안전하게 설계되었습니다:
-- 포맷 오류는 우아하게 처리됩니다
-- 출력 대상 오류로 인해 로거가 중단되지 않습니다
-- 메모리 할당 실패가 처리됩니다
-- 워커 스레드 정리가 보장됩니다
-
 ## 🖥️ 플랫폼 지원
 
-- **Windows**: MSVC로 완전 지원
-- **Linux**: GCC/Clang으로 완전 지원
-- **macOS**: Clang으로 완전 지원
+- 모든 플랫폼에서 사용 가능합니다.
 - **C++17**: 최소 요구 표준
-
-## 📄 라이선스
-
-이 프로젝트는 MIT 라이선스로 라이선스가 부여됩니다. 자세한 내용은 [LICENSE](LICENSE) 파일을 참조하세요.
-
-## 🤝 기여
-
-기여를 환영합니다! Pull Request를 자유롭게 제출해 주세요.
 
 ## 📚 예제
 
 더 자세한 사용 예제는 example.cpp 파일을 확인해주세요.
 
-
-## 💡 사용 팁
-
-### 1. 성능 최적화
-```cpp
-// 릴리즈 빌드에서는 DEBUG 로그 비활성화
-#ifdef NDEBUG
-    logger.set_level(utils::LogLevel::INFO);
-#else
-    logger.set_level(utils::LogLevel::DEBUG);
-#endif
-```
-
-### 2. 에러 로그 분리
-```cpp
-// 일반 로그와 에러 로그 분리
-logger.add_sink(std::make_unique<utils::ConsoleSink>());
-logger.add_sink(std::make_unique<utils::FileSink>("app.log"));
-logger.add_sink(std::make_unique<utils::FileSink>("error.log"));  // 에러 전용
-```
-
-### 3. 초기화 패턴
-```cpp
-void setup_logger() {
-    auto& logger = utils::Logger::get_instance();
-    
-    // 개발 환경
-    if (is_development()) {
-        logger.add_sink(std::make_unique<utils::ConsoleSink>(true));
-        logger.set_level(utils::LogLevel::DEBUG);
-    }
-    // 운영 환경
-    else {
-        logger.add_sink(std::make_unique<utils::FileSink>("production.log", 50*1024*1024, 5));
-        logger.set_level(utils::LogLevel::INFO);
-    }
-}
 ```
