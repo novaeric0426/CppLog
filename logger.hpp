@@ -135,7 +135,7 @@ namespace utils {
 			int max_files = 5)
 			: filename_(filename), max_file_size_(max_file_size), max_files_(max_files), current_size_(0) {
 
-			// µğ·ºÅÍ¸® »ı¼º
+			// ë””ë ‰í„°ë¦¬ ìƒì„±
 			std::filesystem::path file_path(filename);
 			if (file_path.has_parent_path()) {
 				std::filesystem::create_directories(file_path.parent_path());
@@ -143,7 +143,7 @@ namespace utils {
 
 			file_.open(filename_, std::ios::app);
 			if (file_.is_open()) {
-				// ±âÁ¸ ÆÄÀÏ Å©±â È®ÀÎ
+				// ê¸°ì¡´ íŒŒì¼ í¬ê¸° í™•ì¸
 				file_.seekp(0, std::ios::end);
 				current_size_ = file_.tellp();
 			}
@@ -188,25 +188,25 @@ namespace utils {
 
 			file_.close();
 
-			// ±âÁ¸ ·Î±× ÆÄÀÏµé ÀÌ¸§ º¯°æ
+			// ê¸°ì¡´ ë¡œê·¸ íŒŒì¼ë“¤ ì´ë¦„ ë³€ê²½
 			for (int i = max_files_ - 1; i > 0; --i) {
 				std::string old_name = filename_ + "." + std::to_string(i);
 				std::string new_name = filename_ + "." + std::to_string(i + 1);
 
 				if (std::filesystem::exists(old_name)) {
 					if (i == max_files_ - 1) {
-						std::filesystem::remove(new_name);  // ¿À·¡µÈ ÆÄÀÏ »èÁ¦
+						std::filesystem::remove(new_name);  // ì˜¤ë˜ëœ íŒŒì¼ ì‚­ì œ
 					}
 					std::filesystem::rename(old_name, new_name);
 				}
 			}
 
-			// ÇöÀç ÆÄÀÏÀ» .1·Î ÀÌ¸§ º¯°æ
+			// í˜„ì¬ íŒŒì¼ì„ .1ë¡œ ì´ë¦„ ë³€ê²½
 			if (std::filesystem::exists(filename_)) {
 				std::filesystem::rename(filename_, filename_ + ".1");
 			}
 
-			// »õ ÆÄÀÏ »ı¼º
+			// ìƒˆ íŒŒì¼ ìƒì„±
 			file_.open(filename_, std::ios::out);
 			current_size_ = 0;
 		}
@@ -235,7 +235,6 @@ namespace utils {
 			}
 		}
 
-		// ÅÛÇÃ¸´ ÇïÆÛ ÇÔ¼öµé (Exception Safe)
 		void format_recursive(std::ostringstream& oss, const std::string& format) {
 			oss << format;
 		}
@@ -251,11 +250,10 @@ namespace utils {
 			}
 			else {
 				oss << format;
-				// ³²Àº ÀÎÀÚµéÀº ¹«½Ã (Æ÷¸Ë ¹®ÀÚ¿­¿¡ {} ºÎÁ·)
+				// ë‚¨ì€ ì¸ìë“¤ì€ ë¬´ì‹œ (í¬ë§· ë¬¸ìì—´ì— {} ë¶€ì¡±)
 			}
 		}
 
-		// Lazy Initialization
 		void ensure_initialized() {
 			if (!initialized_.load(std::memory_order_acquire)) {
 				std::call_once(init_flag_, [this] {
@@ -272,7 +270,7 @@ namespace utils {
 			{
 				std::lock_guard<std::mutex> lock(queue_mutex_);
 
-				// Å¥°¡ °¡µæ Âù °æ¿ì ¿À·¡µÈ ·Î±× µå·Ó
+				// íê°€ ê°€ë“ ì°¬ ê²½ìš° ì˜¤ë˜ëœ ë¡œê·¸ ë“œë¡­
 				if (log_queue_.size() >= max_queue_size_) {
 					log_queue_.pop();
 				}
@@ -298,20 +296,20 @@ namespace utils {
 
 				lock.unlock();
 
-				// ¹èÄ¡ Ã³¸®µÈ ·Î±×µéÀ» ¸ğµç ½ÌÅ©¿¡ Ãâ·Â
+				// ë°°ì¹˜ ì²˜ë¦¬ëœ ë¡œê·¸ë“¤ì„ ëª¨ë“  ì‹±í¬ì— ì¶œë ¥
 				for (const auto& entry : batch) {
 					for (auto& sink : sinks_) {
 						try {
 							sink->write(entry);
 						}
 						catch (const std::exception& e) {
-							// ½ÌÅ© ¿À·ù´Â ¹«½ÃÇÏ°í °è¼Ó ÁøÇà
+							// ì‹±í¬ ì˜¤ë¥˜ëŠ” ë¬´ì‹œí•˜ê³  ê³„ì† ì§„í–‰
 							std::cerr << "Logger sink error: " << e.what() << std::endl;
 						}
 					}
 				}
 
-				// ¸ğµç ½ÌÅ© ÇÃ·¯½Ã
+				// ëª¨ë“  ì‹±í¬ í”ŒëŸ¬ì‹œ
 				for (auto& sink : sinks_) {
 					try {
 						sink->flush();
@@ -322,7 +320,7 @@ namespace utils {
 				}
 			}
 
-			// Á¾·á ½Ã ³²Àº ·Î±×µé Ã³¸®
+			// ì¢…ë£Œ ì‹œ ë‚¨ì€ ë¡œê·¸ë“¤ ì²˜ë¦¬
 			std::lock_guard<std::mutex> lock(queue_mutex_);
 			while (!log_queue_.empty()) {
 				const auto& entry = log_queue_.front();
@@ -332,7 +330,7 @@ namespace utils {
 						sink->flush();
 					}
 					catch (...) {
-						// Á¾·á ½Ã¿¡´Â ¿¡·¯ ¹«½Ã
+						// ì¢…ë£Œ ì‹œì—ëŠ” ì—ëŸ¬ ë¬´ì‹œ
 					}
 				}
 				log_queue_.pop();
@@ -362,7 +360,7 @@ namespace utils {
 			}
 		}
 
-		// º¹»ç/ÀÌµ¿ ¹æÁö (½Ì±ÛÅæ)
+		// ë³µì‚¬/ì´ë™ ë°©ì§€
 		Logger(const Logger&) = delete;
 		Logger& operator=(const Logger&) = delete;
 		Logger(Logger&&) = delete;
@@ -386,7 +384,7 @@ namespace utils {
 			max_queue_size_ = size;
 		}
 
-		// ¸ğµç ÅÛÇÃ¸´ ÇÔ¼öµé
+		// ëª¨ë“  í…œí”Œë¦¿ í•¨ìˆ˜ë“¤
 		template<typename... Args>
 		void debug(const std::string& format, Args&&... args) {
 			log(LogLevel::DEBUG, format, std::forward<Args>(args)...);
@@ -412,7 +410,7 @@ namespace utils {
 			log(LogLevel::FATAL, format, std::forward<Args>(args)...);
 		}
 
-		// Á¶°ÇºÎ ·Î±ë
+		// ì¡°ê±´ë¶€ ë¡œê¹…
 		template<typename... Args>
 		void log_if(bool condition, LogLevel level, const std::string& format, Args&&... args) {
 			if (condition) {
@@ -435,7 +433,7 @@ namespace utils {
 				}
 			}
 			catch (...) {
-				oss.str("");  // ½ºÆ®¸² ÃÊ±âÈ­
+				oss.str("");  // ìŠ¤íŠ¸ë¦¼ ì´ˆê¸°í™”
 				oss << "[LOG_ERROR] " << format;
 			}
 
@@ -450,7 +448,7 @@ namespace utils {
 		}
 	};
 
-	// RAII ½ºÄÚÇÁ ·Î±ë
+	// RAII ìŠ¤ì½”í”„ ë¡œê¹…
 	class ScopeLogger {
 	private:
 		std::string scope_name_;
@@ -462,11 +460,11 @@ namespace utils {
 			: scope_name_(scope_name), start_time_(std::chrono::steady_clock::now()), level_(level) {
 
 			switch (level_) {
-			case LogLevel::DEBUG: Logger::get_instance().debug("¡æ {} ½ÃÀÛ", scope_name_); break;
-			case LogLevel::INFO:  Logger::get_instance().info("¡æ {} ½ÃÀÛ", scope_name_); break;
-			case LogLevel::WARN:  Logger::get_instance().warn("¡æ {} ½ÃÀÛ", scope_name_); break;
-			case LogLevel::ERROR: Logger::get_instance().error("¡æ {} ½ÃÀÛ", scope_name_); break;
-			case LogLevel::FATAL: Logger::get_instance().fatal("¡æ {} ½ÃÀÛ", scope_name_); break;
+			case LogLevel::DEBUG: Logger::get_instance().debug("â†’ {} ì‹œì‘", scope_name_); break;
+			case LogLevel::INFO:  Logger::get_instance().info("â†’ {} ì‹œì‘", scope_name_); break;
+			case LogLevel::WARN:  Logger::get_instance().warn("â†’ {} ì‹œì‘", scope_name_); break;
+			case LogLevel::ERROR: Logger::get_instance().error("â†’ {} ì‹œì‘", scope_name_); break;
+			case LogLevel::FATAL: Logger::get_instance().fatal("â†’ {} ì‹œì‘", scope_name_); break;
 			}
 		}
 
@@ -475,27 +473,27 @@ namespace utils {
 			auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time_);
 
 			switch (level_) {
-			case LogLevel::DEBUG: Logger::get_instance().debug("¡ç {} ¿Ï·á ({}ms)", scope_name_, duration.count()); break;
-			case LogLevel::INFO:  Logger::get_instance().info("¡ç {} ¿Ï·á ({}ms)", scope_name_, duration.count()); break;
-			case LogLevel::WARN:  Logger::get_instance().warn("¡ç {} ¿Ï·á ({}ms)", scope_name_, duration.count()); break;
-			case LogLevel::ERROR: Logger::get_instance().error("¡ç {} ¿Ï·á ({}ms)", scope_name_, duration.count()); break;
-			case LogLevel::FATAL: Logger::get_instance().fatal("¡ç {} ¿Ï·á ({}ms)", scope_name_, duration.count()); break;
+			case LogLevel::DEBUG: Logger::get_instance().debug("â† {} ì™„ë£Œ ({}ms)", scope_name_, duration.count()); break;
+			case LogLevel::INFO:  Logger::get_instance().info("â† {} ì™„ë£Œ ({}ms)", scope_name_, duration.count()); break;
+			case LogLevel::WARN:  Logger::get_instance().warn("â† {} ì™„ë£Œ ({}ms)", scope_name_, duration.count()); break;
+			case LogLevel::ERROR: Logger::get_instance().error("â† {} ì™„ë£Œ ({}ms)", scope_name_, duration.count()); break;
+			case LogLevel::FATAL: Logger::get_instance().fatal("â† {} ì™„ë£Œ ({}ms)", scope_name_, duration.count()); break;
 			}
 		}
 	};
 
-	// ÆíÀÇ ¸ÅÅ©·Îµé
+	// í¸ì˜ ë§¤í¬ë¡œë“¤
 #define LOG_DEBUG(...) utils::Logger::get_instance().debug(__VA_ARGS__)
 #define LOG_INFO(...)  utils::Logger::get_instance().info(__VA_ARGS__)
 #define LOG_WARN(...)  utils::Logger::get_instance().warn(__VA_ARGS__)
 #define LOG_ERROR(...) utils::Logger::get_instance().error(__VA_ARGS__)
 #define LOG_FATAL(...) utils::Logger::get_instance().fatal(__VA_ARGS__)
 
-// Á¶°ÇºÎ ·Î±ë ¸ÅÅ©·Î
+// ì¡°ê±´ë¶€ ë¡œê¹… ë§¤í¬ë¡œ
 #define LOG_IF(condition, level, ...) \
     utils::Logger::get_instance().log_if(condition, utils::LogLevel::level, __VA_ARGS__)
 
-// ½ºÄÚÇÁ ·Î±ë ¸ÅÅ©·Î
+// ìŠ¤ì½”í”„ ë¡œê¹… ë§¤í¬ë¡œ
 #define LOG_SCOPE(name) utils::ScopeLogger _scope_logger_(name)
 #define LOG_SCOPE_DEBUG(name) utils::ScopeLogger _scope_logger_(name, utils::LogLevel::DEBUG)
 #define LOG_SCOPE_INFO(name) utils::ScopeLogger _scope_logger_(name, utils::LogLevel::INFO)
